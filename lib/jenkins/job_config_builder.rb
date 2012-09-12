@@ -9,6 +9,7 @@ module Jenkins
     attr_accessor :log_rotate
     attr_accessor :scm, :public_scm, :scm_branches
     attr_accessor :assigned_node, :node_labels # TODO just one of these
+    attr_accessor :user_axes
     attr_accessor :envfile
     
     InvalidTemplate = Class.new(StandardError)
@@ -121,9 +122,16 @@ module Jenkins
     end
 
     def matrix_project?
-      !(rubies.blank? && node_labels.blank?)
+      !(rubies.blank? && node_labels.blank? && user_axes.empty?)
     end
-  
+    #<hudson.matrix.TextAxis>
+    #   <name>custom_axis</name>
+    #   <values>
+    #     <string>custom_value_1</string>
+    #     <string>custom_value_2</string>
+    #     <string>custom_value_3</string>
+    #   </values>
+    # </hudson.matrix.TextAxis>
     # <hudson.matrix.TextAxis>
     #   <name>RUBY_VERSION</name>
     #   <values>
@@ -142,6 +150,18 @@ module Jenkins
     # </hudson.matrix.LabelAxis>
     def build_axes(b)
       b.axes do
+        unless user_axes.empty?
+          user_axes.each do |axis|
+            b.tag! "hudson.matrix.TextAxis" do
+              b.name axis[:name]
+              b.values do
+                axis[:values].each do |value|
+                  b.string value
+                end
+              end
+            end
+          end
+        end
         unless rubies.blank?
           b.tag! "hudson.matrix.TextAxis" do
             b.name "RUBY_VERSION"
