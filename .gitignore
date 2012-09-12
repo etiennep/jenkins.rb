@@ -1,0 +1,9 @@
+hudson-*.gem
+tmp
+var
+*.rbc
+.bundle
+pkg/
+*.swp
+.rvmrc
+Gemfile.lock
